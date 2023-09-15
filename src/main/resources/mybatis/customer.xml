@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="customer">
+
+	<sql id="search">
+		SELECT * FROM CUSTOMER
+
+		<where>
+			<if test="search == 1">
+				CUSTID = #{keyword}
+			</if>
+			<if test="search == 2">
+				NAME LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+			</if>
+			<if test="search == 3">
+				ADDRESS LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+			</if>
+			<if test="search == 4">
+				PHONE LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+			</if>			
+			
+		</where>
+
+		ORDER BY CUSTID
+	</sql>
+	
+	<select id="total" resultType="Integer">
+		SELECT COUNT(*) FROM (
+		<include refid="search"></include>
+		)
+	</select>
+
+	<select id="list" resultType="Customer">
+		SELECT * FROM
+			(SELECT sub.*, ROWNUM rnum FROM
+				(<include refid="search"></include>) sub)
+		<if test="perPage != 0">
+			<![CDATA[
+				WHERE rnum > ((#{page} - 1) * #{perPage}) AND rnum <= (#{page} * #{perPage})
+			]]>
+		</if>
+	</select>
+
+
+	<select id="item" resultType="Customer">
+		SELECT * FROM CUSTOMER
+		WHERE CUSTID = #{custid}
+	</select>
+	
+	 <insert id="add">
+	 	INSERT INTO CUSTOMER
+	 	VALUES (#{custid}, #{passwd}, #{name}, #{address}, #{phone})
+	 </insert>
+	
+	<update id="update">
+		UPDATE CUSTOMER
+		SET NAME = #{name},
+			PASSWD = #{passwd},
+			ADDRESS = #{address},
+			PHONE = #{phone}
+		WHERE CUSTID = #{custid}	
+	</update>
+	
+	<delete id="delete">
+		DELETE FROM CUSTOMER
+		WHERE CUSTID = #{custid}
+	</delete>
+	
+	<select id="login" resultType="Customer">
+		SELECT * FROM CUSTOMER
+		WHERE CUSTID = #{custid} AND PASSWD=#{passwd}
+	</select>
+
+</mapper>
